@@ -12,7 +12,7 @@
 #
 # 访问地址：
 #   - 前端：http://localhost
-#   - 后端：http://localhost:8081/api
+#   - 后端：http://localhost:8083/api
 #   - MySQL：localhost:3306
 # ============================================================
 
@@ -71,7 +71,7 @@ services:
 
     # 端口映射
     ports:
-      - "8081:8081"  # 宿主机 8081 -> 容器 8081
+      - "8083:8081"  # 宿主机 8083 -> 容器 8081
 
     # 环境变量（覆盖 application.properties 中的默认值）
     environment:
