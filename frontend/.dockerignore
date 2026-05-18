@@ -1,0 +1,35 @@
+# ============================================================
+# NoteAI 前端 - Docker 构建忽略文件
+# 这些文件/目录不会被复制到 Docker 镜像中
+# ============================================================
+
+# Node 依赖（由容器内 npm install 生成，无需复制）
+node_modules/
+
+# 构建输出目录（由容器内 vite build 生成，无需复制）
+dist/
+
+# IDE 相关文件
+.idea/
+*.iml
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Git 相关
+.git/
+.gitignore
+
+# 本地环境配置
+.env
+.env.local
+.env.development
+.env.production
+
+# 日志
+*.log
+
+# 设计源文件（如果不需要部署到生产环境）
+puml/

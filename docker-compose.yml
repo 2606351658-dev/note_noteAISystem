@@ -1,0 +1,125 @@
+# ============================================================
+# NoteAI - Docker Compose 配置文件
+#
+# 用途：
+#   1. 在本地一键启动完整的 NoteAI 项目（MySQL + 后端 + 前端）
+#   2. 模拟 Coolify 部署环境，方便本地调试
+#
+# 使用方法：
+#   docker-compose up -d          # 后台启动所有服务
+#   docker-compose down           # 停止所有服务
+#   docker-compose logs -f        # 查看实时日志
+#
+# 访问地址：
+#   - 前端：http://localhost
+#   - 后端：http://localhost:8081/api
+#   - MySQL：localhost:3306
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ============================================================
+  # MySQL 数据库服务
+  # ============================================================
+  mysql:
+    # 使用 MySQL 8.0 镜像
+    image: mysql:8.0
+    # 容器名称
+    container_name: noteai-mysql
+    # 重启策略：除非手动停止，否则容器退出时自动重启
+    restart: unless-stopped
+
+    # 环境变量（用于初始化 MySQL）
+    environment:
+      # root 用户密码
+      MYSQL_ROOT_PASSWORD: root
+      # 启动时自动创建的数据库名
+      MYSQL_DATABASE: aiclassnotetable
+      # 默认字符集（支持中文）
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+
+    # 端口映射（宿主机端口:容器端口）
+    ports:
+      - "3307:3306"  # 宿主机的 3307 -> 容器的 3306，避免和本地 MySQL 冲突
+
+    # 数据持久化：将 MySQL 数据保存到宿主机的命名卷中
+    # 这样即使容器删除，数据也不会丢失
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    # 健康检查：确保 MySQL 完全启动后再启动后端
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # 后端 Spring Boot 服务
+  # ============================================================
+  backend:
+    # 构建上下文：使用 backend/ 目录下的 Dockerfile 构建
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # 镜像名称
+    image: noteai-backend
+    container_name: noteai-backend
+    restart: unless-stopped
+
+    # 端口映射
+    ports:
+      - "8081:8081"  # 宿主机 8081 -> 容器 8081
+
+    # 环境变量（覆盖 application.properties 中的默认值）
+    environment:
+      # 数据库连接 - 使用服务名 "mysql" 而不是 localhost
+      # Docker 内部可通过服务名互相访问
+      DB_URL: mysql:3306/aiclassnotetable
+      # 数据库用户名
+      DB_USERNAME: root
+      # 数据库密码
+      DB_PASSWORD: root
+      # DeepSeek API 密钥（可以在这里设置，也可以在 Coolify 的 UI 中设置）
+      DEEPSEEK_API_KEY: sk-1fed55acc2784db287c7a67bda4fbddc
+
+    # 依赖关系：后端依赖 MySQL
+    depends_on:
+      mysql:
+        condition: service_healthy  # 等待 MySQL 健康检查通过后再启动
+
+    # 卷挂载：将上传文件持久化
+    volumes:
+      - backend_uploads:/app/file
+
+  # ============================================================
+  # 前端 Nginx 服务
+  # ============================================================
+  frontend:
+    # 构建上下文：使用 frontend/ 目录下的 Dockerfile 构建
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # 镜像名称
+    image: noteai-frontend
+    container_name: noteai-frontend
+    restart: unless-stopped
+
+    # 端口映射：宿主机 80 端口 -> 容器 80 端口
+    # 所以访问 http://localhost 就能看到前端页面
+    ports:
+      - "80:80"
+
+    # 依赖关系：前端不直接依赖后端，但 Nginx 代理需要后端可用
+    depends_on:
+      - backend
+
+# ============================================================
+# 命名卷定义
+# 用于持久化数据，避免容器删除后数据丢失
+# ============================================================
+volumes:
+  mysql_data:      # MySQL 数据库文件
+  backend_uploads: # 后端上传的文件（头像、文档等）
