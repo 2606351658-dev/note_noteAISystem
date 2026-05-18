@@ -1,15 +1,16 @@
 package com.noteaiBackend.repository;
 
-import com.noteaiBackend.dto.ClassFindByTeacherIdDTO;
-import com.noteaiBackend.dto.TaskFindByTeacherIdWithClassDTO;
-import com.noteaiBackend.dto.TaskWithNoteId;
-import com.noteaiBackend.entity.Task;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.noteaiBackend.dto.ClassFindByTeacherIdDTO;
+import com.noteaiBackend.dto.TaskFindByTeacherIdWithClassDTO;
+import com.noteaiBackend.dto.TaskWithNoteId;
+import com.noteaiBackend.entity.Task;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
@@ -31,10 +32,34 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
     LEFT JOIN (
         SELECT class_id, COUNT(*) AS join_count
         FROM class_joined
-        WHERE class_id = :id
         GROUP BY class_id
     ) cc ON c.id = cc.class_id
-    WHERE c.id = :id
+    WHERE c.id = :classId
+    GROUP BY c.id, task.id, c.class_name, task.title, task.deadline, cc.join_count
+    ORDER BY
+        CASE WHEN task.deadline IS NULL THEN 1 ELSE 0 END,
+        task.deadline DESC
+""", nativeQuery = true)
+    List<TaskFindByTeacherIdWithClassDTO> findByClassIdWithStats(@Param("classId") Integer classId);
+
+    @Query(value = """
+    SELECT
+        c.id AS classId,
+        task.id AS taskId,
+        c.class_name AS className,
+        task.title AS title,
+        COUNT(DISTINCT note.id) AS noteCount,
+        task.deadline AS deadline,
+        cc.join_count AS studentCount
+    FROM class c
+    LEFT JOIN task ON c.id = task.class_id
+    LEFT JOIN note ON task.id = note.task_id
+    LEFT JOIN (
+        SELECT class_id, COUNT(*) AS join_count
+        FROM class_joined
+        GROUP BY class_id
+    ) cc ON c.id = cc.class_id
+    WHERE c.teacher_id = :id
     GROUP BY c.id, task.id, c.class_name, task.title, task.deadline, cc.join_count
     ORDER BY
         CASE WHEN task.deadline IS NULL THEN 1 ELSE 0 END,

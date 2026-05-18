@@ -509,7 +509,11 @@ const removeAttachment = (index) => {
 }
 
 const handleFileOpen = (file) => {
-  const url = api.defaults.baseURL + file.fileUrl
+  // fileUrl already contains /api/files/download/xxx from upload response
+  let url = file.fileUrl
+  if (!url.startsWith('http')) {
+    url = window.location.origin + url
+  }
   window.open(url, '_blank')
 }
 

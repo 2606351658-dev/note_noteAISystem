@@ -249,7 +249,7 @@ const handleCourseSelect = async (node) => {
 // 加载课程作业列表
 const loadCourseTasks = async (courseId) => {
   try {
-    const res = await api.get(`api/task/byTeacherIdWithClass/${courseId}`)
+    const res = await api.get(`api/task/byClassIdWithStats/${courseId}`)
     if (res.code === 200) {
       courseTasks.value = res.data
     }

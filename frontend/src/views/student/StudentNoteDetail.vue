@@ -87,6 +87,29 @@
           ></v-md-editor>
         </div>
 
+        <!-- 附件区域 -->
+        <div v-if="attachments && attachments.length > 0" class="attachment-section">
+          <el-divider />
+          <div class="attachment-header">
+            <el-icon><Document /></el-icon>
+            <span>附件 ({{ attachments.length }})</span>
+          </div>
+          <div class="attachment-list">
+            <div v-for="(file, index) in attachments" :key="index" class="attachment-item">
+              <div class="file-info" @click="downloadAttachment(file)">
+                <el-icon><Document /></el-icon>
+                <span class="file-name">{{ file.fileName }}</span>
+              </div>
+              <div class="file-actions">
+                <el-tag size="small" type="info" v-if="file.fileSize">{{ file.fileSize }}KB</el-tag>
+                <el-button link type="primary" size="small" @click="downloadAttachment(file)">
+                  <el-icon><Download /></el-icon> 下载
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 笔记信息 -->
         <div class="note-info">
           <el-descriptions title="笔记信息" :column="2" border>
@@ -201,7 +224,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
   View, Star, ChatDotRound, Document, Edit, ArrowLeft, 
-  Check, Clock, Share 
+  Check, Clock, Share, Download
 } from '@element-plus/icons-vue'
 import studentApi from '../../api/student'
 import { useUserStore } from '../../store/user'
@@ -211,6 +234,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const note = ref({})
+const attachments = ref([])
 const loading = ref(false)
 const viewCount = ref(0)
 const likeCount = ref(0)
@@ -233,6 +257,7 @@ const loadNoteDetail = async () => {
     if (response && response.code === 200) {
       const data = response.data
       note.value = data.note
+      attachments.value = data.attachments || []
       
       // 检查是否是自己的笔记
       if (note.value.userId !== userStore.id) {
@@ -417,6 +442,17 @@ const makePublic = async () => {
 }
 
 /**
+ * 下载/预览附件
+ */
+const downloadAttachment = (file) => {
+  let url = file.fileUrl
+  if (!url.startsWith('http')) {
+    url = window.location.origin + url
+  }
+  window.open(url, '_blank')
+}
+
+/**
  * 格式化日期
  */
 const formatDate = (dateString) => {
@@ -538,6 +574,62 @@ onMounted(() => {
       border: none;
       box-shadow: none;
       background-color: transparent;
+    }
+  }
+  
+  .attachment-section {
+    margin: 24px 0;
+    
+    .attachment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 12px;
+    }
+    
+    .attachment-list {
+      .attachment-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        background: #f8f9fa;
+        border: 1px solid #ebeef5;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        transition: all 0.2s;
+        
+        &:hover {
+          background: #ecf5ff;
+          border-color: #b3d8ff;
+        }
+        
+        .file-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          flex: 1;
+          overflow: hidden;
+          
+          .file-name {
+            font-size: 14px;
+            color: #409eff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+        
+        .file-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+      }
     }
   }
   

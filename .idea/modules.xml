@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/noteSystem.iml" filepath="$PROJECT_DIR$/.idea/noteSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/note_noteSystem.iml" filepath="$PROJECT_DIR$/.idea/note_noteSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backend/noteaiBackend.iml" filepath="$PROJECT_DIR$/backend/noteaiBackend.iml" />
     </modules>
   </component>
 </project>

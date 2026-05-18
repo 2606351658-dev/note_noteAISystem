@@ -1,14 +1,17 @@
 package com.noteaiBackend.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.noteaiBackend.dto.ClassFindByTeacherIdDTO;
 import com.noteaiBackend.dto.TaskFindByTeacherIdWithClassDTO;
 import com.noteaiBackend.dto.TaskWithNoteId;
 import com.noteaiBackend.entity.Task;
 import com.noteaiBackend.repository.TaskRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,10 @@ public class TaskService {
 
     public List<TaskFindByTeacherIdWithClassDTO> TaskFindByTeacherIdWithClass(Integer id) {
         return repository.findByTeacherIdWithClass(id);
+    }
+
+    public List<TaskFindByTeacherIdWithClassDTO> findByClassIdWithStats(Integer classId) {
+        return repository.findByClassIdWithStats(classId);
     }
 
     public List<Task> findByClassId(Integer classId) {

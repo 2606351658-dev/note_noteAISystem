@@ -1,9 +1,15 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-// 创建axios实例
+// ============================================================
+// 创建 axios 实例
+// baseURL 说明：
+//   - 本地开发：Vite 代理将 /api 请求转发到 http://localhost:8081
+//   - Docker 部署：Nginx 将 /api 请求转发到后端容器
+//   所以这里统一使用 '/api' 作为 baseURL
+// ============================================================
 const request = axios.create({
-    baseURL: 'http://localhost:8081', // 你的后端地址
+    baseURL: '/api',  // 统一通过代理访问后端
     timeout: 10000000,
     headers: {
         'Content-Type': 'application/json'

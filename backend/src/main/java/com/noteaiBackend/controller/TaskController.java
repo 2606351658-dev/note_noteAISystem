@@ -1,15 +1,25 @@
 package com.noteaiBackend.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.noteaiBackend.dto.ApiResponse;
 import com.noteaiBackend.dto.ClassFindByTeacherIdDTO;
 import com.noteaiBackend.dto.TaskFindByTeacherIdWithClassDTO;
 import com.noteaiBackend.dto.TaskWithNoteId;
 import com.noteaiBackend.entity.Task;
 import com.noteaiBackend.service.TaskService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/task")
@@ -87,7 +97,19 @@ public class TaskController {
         }
     }
 
-    //    用在学生端(/student/courses/{class_id}/{user_id})
+    //    按课程ID查询作业统计信息（用在TeacherCourseManagement.vue和TeacherStudentManagement.vue）
+    @GetMapping("byClassIdWithStats/{classId}")
+    public ResponseEntity<ApiResponse<List<TaskFindByTeacherIdWithClassDTO>>> getByClassIdWithStats(@PathVariable Integer classId) {
+        try {
+            List<TaskFindByTeacherIdWithClassDTO> res = service.findByClassIdWithStats(classId);
+            return ResponseEntity.ok(ApiResponse.success("查询成功", res));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+//    用在学生端(/student/courses/{class_id}/{user_id})
     @GetMapping("byClassId/{class_id}/{user_id}")
     public ResponseEntity<ApiResponse<List<TaskWithNoteId>>> getByClassIdWithNoteId(@PathVariable Integer class_id, @PathVariable Integer user_id) {
         try {

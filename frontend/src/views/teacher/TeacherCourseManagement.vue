@@ -321,7 +321,7 @@ const viewDetails = async (course) => {
     }
 
     // 2. 获取作业列表
-    const taskRes = await api.get(`api/task/byTeacherIdWithClass/${course.id}`)
+    const taskRes = await api.get(`api/task/byClassIdWithStats/${course.id}`)
     if (taskRes.code === 200) {
       courseTasks.value = taskRes.data
     }

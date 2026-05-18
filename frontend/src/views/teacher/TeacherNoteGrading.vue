@@ -32,6 +32,22 @@
           <div class="note-content">
             <h3>{{ noteDetail.title }}</h3>
             <v-md-editor :model-value="noteDetail.content" mode="preview"></v-md-editor>
+            
+            <!-- 附件列表 -->
+            <div v-if="attachments && attachments.length > 0" class="attachment-section">
+              <el-divider />
+              <h4><el-icon><Document /></el-icon> 附件 ({{ attachments.length }})</h4>
+              <div class="attachment-list">
+                <div v-for="(file, index) in attachments" :key="index" class="attachment-item">
+                  <el-icon><Document /></el-icon>
+                  <span class="file-name" @click="downloadAttachment(file)">{{ file.fileName }}</span>
+                  <el-tag size="small" type="info" v-if="file.fileSize">{{ file.fileSize }}KB</el-tag>
+                  <el-button link type="primary" size="small" @click="downloadAttachment(file)">
+                    <el-icon><Download /></el-icon> 下载
+                  </el-button>
+                </div>
+              </div>
+            </div>
           </div>
         </el-card>
         <el-empty v-else description="请从左侧选择一个学生笔记进行批改" />
@@ -72,7 +88,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Edit, Star } from '@element-plus/icons-vue'
+import { Edit, Star, Document, Download } from '@element-plus/icons-vue'
 import { useUserStore } from '../../store/user'
 import api from '../../api'
 
@@ -93,6 +109,7 @@ const gradingForm = reactive({
 const submissions = ref([])
 const isSettingExample = ref(false)
 const exampleReason = ref('')
+const attachments = ref([])
 
 const fetchSubmissions = async () => {
   loadingList.value = true
@@ -121,6 +138,7 @@ const handleSelectSubmission = async (val) => {
       const res = await api.get(`api/note/${val.noteId}`)
       if (res && res.code === 200) {
         noteDetail.value = res.data.note
+        attachments.value = res.data.attachments || []
       }
     } catch (error) {
       ElMessage.error('获取笔记详情失败')
@@ -211,6 +229,14 @@ const setAsExampleNote = async () => {
 
 const focusComment = () => {
   ElMessage.info('请在右侧表单输入评分和评语')
+}
+
+const downloadAttachment = (file) => {
+  let url = file.fileUrl
+  if (!url.startsWith('http')) {
+    url = window.location.origin + url
+  }
+  window.open(url, '_blank')
 }
 
 onMounted(() => {
